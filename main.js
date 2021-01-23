@@ -17,12 +17,16 @@ const main = async () => {
     if(interestedPrograms.length){
         notify(interestedPrograms.reduce((text, current) => text + current));
     }
+
+    return;
+
 };
 
 //特定のチャットルームに通知を送信します
 const notify = (notifyText) => {
 
-    const WEBHOOK_URL = ''; //チャットルームのURLを指定する
+    //チャットルームのURLを指定する
+    const WEBHOOK_URL = ''; 
     const message = {'text' : notifyText}
     const options = {
         'method': 'POST',
@@ -38,18 +42,24 @@ const notify = (notifyText) => {
 
 //スプレッドシートの取得
 const getSpreadSheet = (sheetIndex = 0) => {
-    const SP_URL = ''; //キーワードを記載したスプレッドシートのURLを指定する
+
+    //キーワードを記載したスプレッドシートのURLを指定する
+    const SP_URL = ''; 
     const spreadsheet = SpreadsheetApp.openByUrl(SP_URL);
+
     return spreadsheet.getSheets()[sheetIndex];
+
 };
 
 //検索キーワードを配列で取得
 const getKeywordArr = () => {
+
     //とりあえず100行分のキーワードを、空文字を取り除いて取得する
     return getSpreadSheet().getRange(1, 1, 100)
         .getValues()
         .reduce((pre,current) => {pre.push(...current);return pre},[])
         .filter((keyword) => keyword != ''); 
+
 };
 
 //A&GのAPIへリクエストを投げて、番組表を取得します
@@ -81,14 +91,18 @@ const getKeywordMatchProgram = (programData) => {
 
 //現在時刻の一時間後に始まるプログラムか判定します
 const getTimeMatchProgram = (programData) => {
+
     return programData.ft.substring(6) >= getNextHour() && programData.ft.substring(6) <= getNextHour(2);
+
 };
 
 //現在時刻+1時間をデフォルトで返します。
 //基本的には、開始時刻・終了時刻を指定するために使います
 const getNextHour = (addHour = 1) => {
+
     const date = new Date();
     return "" + date.getDate() + (date.getHours() + addHour) + "00";
+
 };
 
 //一時間後に自分の興味ありそうな番組を取得した場合、
