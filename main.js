@@ -111,10 +111,8 @@ const getFormatedText = (programData) => {
 
     const separator = '------------------------------------------';
     const returnCode = '\n';
-    const broadCast = programData.isBroadcast ? '【生】' : '';
     const repeat = programData.isRepeat ? '【再】' : '';
-
-    const title = broadCast + repeat + programData.title;
+    const title = repeat + programData.title;
     const programPresonality = programData.pfm;
     const beginTime = programData.ft.substring(8).substring(0,2) + ":" + programData.ft.substring(8).substring(2);
 
