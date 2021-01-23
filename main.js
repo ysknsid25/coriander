@@ -1,24 +1,31 @@
 const main = async () => {
 
-    const url = 'https://chat.googleapis.com/v1/spaces/AAAAEoh2Zo4/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=wg3sihwfsxV5dFa1oVnQvdfEtKkJX9FkEQSGsRTCefk%3D';
-
     //今日のプログラムを取得する
-//    const programData = await getAandGProgarmList();
+//    const programDataArr = await getAandGProgarmList();
     const programDataArr = programTestData;
 
+    if(programDataArr.length){
+        notify('APIから番組データの取得に失敗しました');
+        return;
+    }
+
     //取得したプログラムのデータをくるくる回して、自分が登録したキーワードに合致するものがあるかを調べる
-    const interestedPrograms = programDataArr.filter((programData) => getKeywordMatchProgram(programData)).filter((programData) => getTimeMatchProgram(programData));
+    const interestedPrograms = programDataArr
+        .filter((programData) => getKeywordMatchProgram(programData))
+        .filter((programData) => getTimeMatchProgram(programData))
+        .map((programDate) => getFormatedText(programDate));
 
-    //キーワードに合致しつつ、現在時間の一時間後に始まる番組を抽出する
+    //キーワードに合致する番組があれば送信
+    if(interestedPrograms.length){
+        notify(interestedPrograms.reduce((text, current) => text + current));
+    }
+};
 
-    //マッチしたやつだけを抽出して、形式を整えていく
-    console.log(interestedPrograms);
+//特定のチャットルームに通知を送信します
+const notify = (notifyText) => {
 
-    //あとはセットして、送信
-    const TEXT = '送信したい文字列';
-
-    // 送信内容を生成
-    const message = {'text' : TEXT}
+    const WEBHOOK_URL = ''; //チャットルームのURLを指定する
+    const message = {'text' : notifyText}
     const options = {
         'method': 'POST',
         'headers' : {
@@ -27,27 +34,45 @@ const main = async () => {
         'payload':JSON.stringify(message)
     };
 
-    // 送信を実行
-    //UrlFetchApp.fetch(url, options);
+    UrlFetchApp.fetch(WEBHOOK_URL, options);
+
 };
 
+//スプレッドシートの取得
+const getSpreadSheet = (sheetIndex = 0) => {
+    const SP_URL = ""; //キーワードを記載したスプレッドシートのURLを指定する
+    const spreadsheet = SpreadsheetApp.openByUrl(SP_URL);
+    return spreadsheet.getSheets()[sheetIndex];
+};
+
+//検索キーワードを配列で取得
+const getKeywordArr = () => {
+    //とりあえず100行分のキーワードを、空文字を取り除いて取得する
+    return getSpreadSheet().getRange(1, 1, 100)
+        .getValues()
+        .reduce((pre,current) => {pre.push(...current);return pre},[])
+        .filter((keyword) => keyword != ''); 
+};
+
+//A&GのAPIへリクエストを投げて、番組表を取得します
+//作者様に感謝
+//github: https://github.com/sun-yryr/agqr-program-guide
 const getAandGProgarmList = async () => {
 
     const url = 'https://agqr.sun-yryr.com/api/today'; // リクエスト先URL
 
-    var json = UrlFetchApp.fetch(url).getContentText();
-    var jsonData = JSON.parse(json);
-
-    //値が取得できなかった場合のエラーメッセージを切ってやらんといかん
+    const json = UrlFetchApp.fetch(url).getContentText();
+    const jsonData = JSON.parse(json);
 
     return jsonData;
 
 };
 
+//番組表データから自分の興味のありそうな番組を検索します
 const getKeywordMatchProgram = (programData) => {
 
-    //テスト探索対象: 番組キーワード
-    const targetKeywordArr = ["A&G", "7/22", "天月", "鈴木"];
+    const targetKeywordArr = getKeywordArr();
+    //const targetKeywordArr = ["A&G", "割り切れない", "天月", "宮本"]; //テストデータ
 
     const programTitle = programData.title;
     const programPresonality = programData.pfm;
@@ -56,13 +81,33 @@ const getKeywordMatchProgram = (programData) => {
 
 };
 
+//現在時刻の一時間後に始まるプログラムか判定します
 const getTimeMatchProgram = (programData) => {
     return programData.ft.substring(6) >= getNextHour() && programData.to.substring(6) <= getNextHour(2);
 };
 
+//現在時刻+1時間をデフォルトで返します。
+//基本的には、開始時刻・終了時刻を指定するために使います
 const getNextHour = (addHour = 1) => {
     const date = new Date();
     return "" + date.getDate() + (date.getHours() + addHour) + "00";
+};
+
+//一時間後に自分の興味ありそうな番組を取得した場合、
+//チャットルームに送信するメッセージの形式を整えて通知します。
+const getFormatedText = (programData) => {
+
+    const separator = '------------------------------------------';
+    const returnCode = '\n';
+    const broadCast = programData.isBroadcast ? '【生】' : '';
+    const repeat = programData.isRepeat ? '【再】' : '';
+
+    const title = broadCast + repeat + programData.title;
+    const programPresonality = programData.pfm;
+    const beginTime = programData.ft.substring(8).substring(0,2) + ":" + programData.ft.substring(8).substring(2);
+
+    return separator + returnCode + title + returnCode + programPresonality + returnCode + beginTime + returnCode + returnCode;
+
 };
 
 //テストデータ
