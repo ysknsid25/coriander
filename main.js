@@ -101,9 +101,21 @@ const getTimeMatchProgram = (programData) => {
 const getNextHour = (addHour = 1) => {
 
     const date = new Date();
-    return "" + date.getDate() + (date.getHours() + addHour) + "00";
+    return "" + date.getDate() + complementZero((date.getHours() + addHour)) + "00";
 
 };
+
+//0埋め処理
+const complementZero = (hour) => {
+
+    const strHour = "" + hour;
+    if(strHour.length == 1){
+        return "0" + strHour;
+    }
+    return strHour;
+
+};
+
 
 //一時間後に自分の興味ありそうな番組を取得した場合、
 //チャットルームに送信するメッセージの形式を整えて通知します。
