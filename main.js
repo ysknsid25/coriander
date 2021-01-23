@@ -1,15 +1,13 @@
 const main = async () => {
 
-    //今日のプログラムを取得する
-//    const programDataArr = await getAandGProgarmList();
-    const programDataArr = programTestData;
+    const programDataArr = await getAandGProgarmList();
+    //const programDataArr = programTestData; //番組表のテストデータ
 
-    if(programDataArr.length){
+    if(!programDataArr.length){
         notify('APIから番組データの取得に失敗しました');
         return;
     }
 
-    //取得したプログラムのデータをくるくる回して、自分が登録したキーワードに合致するものがあるかを調べる
     const interestedPrograms = programDataArr
         .filter((programData) => getKeywordMatchProgram(programData))
         .filter((programData) => getTimeMatchProgram(programData))
@@ -40,7 +38,7 @@ const notify = (notifyText) => {
 
 //スプレッドシートの取得
 const getSpreadSheet = (sheetIndex = 0) => {
-    const SP_URL = ""; //キーワードを記載したスプレッドシートのURLを指定する
+    const SP_URL = ''; //キーワードを記載したスプレッドシートのURLを指定する
     const spreadsheet = SpreadsheetApp.openByUrl(SP_URL);
     return spreadsheet.getSheets()[sheetIndex];
 };
@@ -59,9 +57,9 @@ const getKeywordArr = () => {
 //github: https://github.com/sun-yryr/agqr-program-guide
 const getAandGProgarmList = async () => {
 
-    const url = 'https://agqr.sun-yryr.com/api/today'; // リクエスト先URL
+    const API_URL = 'https://agqr.sun-yryr.com/api/today'; // リクエスト先URL
 
-    const json = UrlFetchApp.fetch(url).getContentText();
+    const json = UrlFetchApp.fetch(API_URL).getContentText();
     const jsonData = JSON.parse(json);
 
     return jsonData;
@@ -83,7 +81,7 @@ const getKeywordMatchProgram = (programData) => {
 
 //現在時刻の一時間後に始まるプログラムか判定します
 const getTimeMatchProgram = (programData) => {
-    return programData.ft.substring(6) >= getNextHour() && programData.to.substring(6) <= getNextHour(2);
+    return programData.ft.substring(6) >= getNextHour() && programData.ft.substring(6) <= getNextHour(2);
 };
 
 //現在時刻+1時間をデフォルトで返します。
@@ -213,6 +211,27 @@ isRepeat: false },
 ft: '202101231600',
 to: '202101231630',
 pfm: '22/7(ナナブンノニジュウニ)',
+dur: 30,
+isBroadcast: true,
+isRepeat: false },
+{ title: 'ふりすた',
+ft: '202101231700',
+to: '202101231730',
+pfm: '早見沙織',
+dur: 30,
+isBroadcast: true,
+isRepeat: false },
+{ title: 'ひとかな',
+ft: '202101231730',
+to: '202101231800',
+pfm: '花澤香菜',
+dur: 30,
+isBroadcast: true,
+isRepeat: false },
+{ title: '二時間番組',
+ft: '202101231700',
+to: '202101231900',
+pfm: '花澤香菜',
 dur: 30,
 isBroadcast: true,
 isRepeat: false },
