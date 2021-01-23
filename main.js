@@ -7,7 +7,7 @@ const main = async () => {
     const programDataArr = programTestData;
 
     //取得したプログラムのデータをくるくる回して、自分が登録したキーワードに合致するものがあるかを調べる
-    const interestedPrograms = programDataArr.filter((programData) => getKeywordMatchProgram(programData)).filter((programData) => getTimeMatchProgram(programData.ft, programData.to));
+    const interestedPrograms = programDataArr.filter((programData) => getKeywordMatchProgram(programData)).filter((programData) => getTimeMatchProgram(programData));
 
     //キーワードに合致しつつ、現在時間の一時間後に始まる番組を抽出する
 
@@ -47,7 +47,7 @@ const getAandGProgarmList = async () => {
 const getKeywordMatchProgram = (programData) => {
 
     //テスト探索対象: 番組キーワード
-    const targetKeywordArr = ["A&G", "7/22", "桜井孝宏", "江口拓也"];
+    const targetKeywordArr = ["A&G", "7/22", "天月", "鈴木"];
 
     const programTitle = programData.title;
     const programPresonality = programData.pfm;
@@ -56,13 +56,13 @@ const getKeywordMatchProgram = (programData) => {
 
 };
 
-const getTimeMatchProgram = (programBeginTime, programEndTime) => {
-    return programBeginTime.substring(8) >= getNextHour() && programEndTime.substring(8) >= getNextHour(2);
+const getTimeMatchProgram = (programData) => {
+    return programData.ft.substring(6) >= getNextHour() && programData.to.substring(6) <= getNextHour(2);
 };
 
 const getNextHour = (addHour = 1) => {
     const date = new Date();
-    return "" + (date.getHours() + addHour) + "00";
+    return "" + date.getDate() + (date.getHours() + addHour) + "00";
 };
 
 //テストデータ
