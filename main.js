@@ -92,7 +92,7 @@ const getKeywordMatchProgram = (programData) => {
 //現在時刻の一時間後に始まるプログラムか判定します
 const getTimeMatchProgram = (programData) => {
 
-    return programData.ft.substring(6) >= getNextHour() && programData.ft.substring(6) <= getNextHour(2);
+    return programData.ft.substring(6) >= getNextHour() && programData.to.substring(6) <= getNextHour(2);
 
 };
 
