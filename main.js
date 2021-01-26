@@ -62,18 +62,34 @@ const getKeywordArr = () => {
 
 };
 
-//A&GのAPIへリクエストを投げて、番組表を取得します
-//作者様に感謝
-//github: https://github.com/sun-yryr/agqr-program-guide
+//別AppsScriptで取得したJSONデータへアクセスして、番組データを取得します
 const getAandGProgarmList = async () => {
 
-    const API_URL = 'https://agqr.sun-yryr.com/api/today'; // リクエスト先URL
+    const fileName = getReadFileName();
+    console.log('FileName:' + fileName);
+    const json = DriveApp.getFolderById(GOOGLE_DRIVE_INFO.FOLDER_ID)
+    .getFilesByName(fileName + GOOGLE_DRIVE_INFO.DELETE_FILENAME)
+    .next()
+    .getBlob()
+    .getDataAsString();
 
-    const json = UrlFetchApp.fetch(API_URL).getContentText();
     const jsonData = JSON.parse(json);
 
     return jsonData;
 
+};
+
+//読み取り番組表JSONファイル名を取得する
+const getReadFileName = () => {
+    const dateObj = new Date();
+    const nowHours = dateObj.getHours();
+
+    //午前0~6時までは前日の番組表を見に行く
+    if(0 <= nowHours && nowHours < 6){
+        dateObj.setDate(dateObj.getDate()-1);
+    }
+
+    return dateObj.getFullYear() + '' + complementZero((dateObj.getMonth() + 1)) + '' + complementZero(dateObj.getDate());
 };
 
 //番組表データから自分の興味のありそうな番組を検索します
@@ -83,7 +99,7 @@ const getKeywordMatchProgram = (programData) => {
     //const targetKeywordArr = ["A&G", "割り切れない", "天月", "宮本"]; //テストデータ
 
     const programTitle = programData.title;
-    const programPresonality = programData.pfm;
+    const programPresonality = programData.personality;
 
     return targetKeywordArr.some((keyWord) => programTitle.indexOf(keyWord) > -1 || programPresonality.indexOf(keyWord) > -1);
 
@@ -92,7 +108,7 @@ const getKeywordMatchProgram = (programData) => {
 //現在時刻の一時間後に始まるプログラムか判定します
 const getTimeMatchProgram = (programData) => {
 
-    return programData.ft.substring(6) >= getNextHour() && programData.to.substring(6) <= getNextHour(2);
+    return programData.beginTime >= getNextHour() && programData.endTime <= getNextHour(2);
 
 };
 
@@ -123,10 +139,12 @@ const getFormatedText = (programData) => {
 
     const separator = '------------------------------------------';
     const returnCode = '\n';
+    const first = programData.isFirst  ? '【初】' : '';
+    const realTime = programData.isRealTime ? '【生】' : '';
     const repeat = programData.isRepeat ? '【再】' : '';
-    const title = repeat + programData.title;
+    const title = first + realTime + repeat + programData.title;
     const programPresonality = programData.pfm;
-    const beginTime = programData.ft.substring(8).substring(0,2) + ":" + programData.ft.substring(8).substring(2);
+    const beginTime = programData.beginTime.substring(0,2) + ":" + programData.beginTime.substring(2);
 
     return separator + returnCode + title + returnCode + programPresonality + returnCode + beginTime + returnCode + returnCode;
 
