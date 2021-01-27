@@ -89,8 +89,7 @@ const getReadFileName = () => {
     const dateObj = new Date();
     const nowHours = dateObj.getHours();
 
-    //午前0~6時までは前日の番組表を見に行く
-    if(0 <= nowHours && nowHours < 6){
+    if(isTodayYet(nowHours)){
         dateObj.setDate(dateObj.getDate()-1);
     }
 
@@ -122,9 +121,20 @@ const getTimeMatchProgram = (programData) => {
 const getNextHour = (addHour = 1) => {
 
     const date = new Date();
-    return complementZero((date.getHours() + addHour)) + "00";
+    let nowHours = date.getHours();
+
+    //A&Gの番組表では、午前6時までは当日の
+    if(isTodayYet(nowHours)){
+        nowHours = nowHours + 24;
+    }
+
+    return complementZero((nowHours + addHour)) + "00";
 
 };
+
+//午前0~6時かを判定する。
+//A&Gの番組表は、午前6時を境界に翌日に変わる
+const isTodayYet = (nowHours) => 0 <= nowHours && nowHours < 6;
 
 //0埋め処理
 const complementZero = (hour) => {
