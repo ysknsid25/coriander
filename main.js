@@ -1,3 +1,8 @@
+const GOOGLE_DRIVE_INFO = {
+    DELETE_FILENAME: '.json',
+    FOLDER_ID: '1njW0RVO5Vdc0jx4kRKQeb5qv6x7WzXb4'
+}
+
 const main = async () => {
 
     const programDataArr = await getAandGProgarmList();
@@ -117,7 +122,7 @@ const getTimeMatchProgram = (programData) => {
 const getNextHour = (addHour = 1) => {
 
     const date = new Date();
-    return "" + date.getDate() + complementZero((date.getHours() + addHour)) + "00";
+    return complementZero((date.getHours() + addHour)) + "00";
 
 };
 
@@ -143,7 +148,7 @@ const getFormatedText = (programData) => {
     const realTime = programData.isRealTime ? '【生】' : '';
     const repeat = programData.isRepeat ? '【再】' : '';
     const title = first + realTime + repeat + programData.title;
-    const programPresonality = programData.pfm;
+    const programPresonality = programData.personality;
     const beginTime = programData.beginTime.substring(0,2) + ":" + programData.beginTime.substring(2);
 
     return separator + returnCode + title + returnCode + programPresonality + returnCode + beginTime + returnCode + returnCode;
