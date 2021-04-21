@@ -4,46 +4,56 @@ const GOOGLE_DRIVE_INFO = {
 }
 
 const main = async () => {
-
     const programDataArr = await getAandGProgarmList();
     //const programDataArr = programTestData; //番組表のテストデータ
 
-    if(!programDataArr.length){
-        notify('APIから番組データの取得に失敗しました');
+    if (!programDataArr.length) {
+        notify("APIから番組データの取得に失敗しました");
         return;
     }
 
     const interestedPrograms = programDataArr
-        .filter((programData) => getKeywordMatchProgram(programData))
-        .filter((programData) => getTimeMatchProgram(programData))
-        .map((programDate) => getFormatedText(programDate));
+        .filter((programData) => getKeywordMatchProgram(programData));
+        //.filter((programData) => getTimeMatchProgram(programData))
+        //.map((programDate) => getFormatedText(programDate));
 
     //キーワードに合致する番組があれば送信
-    if(interestedPrograms.length){
-        notify(interestedPrograms.reduce((text, current) => text + current));
+    if (interestedPrograms.length) {
+        makeCalendar(interestedPrograms);
     }
 
     return;
-
 };
 
-//特定のチャットルームに通知を送信します
-const notify = (notifyText) => {
+//Googleカレンダーに番組予定を作成する
+const makeCalendar = (programDatas) => {
+    programDatas.map((programData) => {
+        const first = programData.isFirst ? "【初】" : "";
+        const realTime = programData.isRealTime ? "【生】" : "";
+        const repeat = programData.isRepeat ? "【再】" : "";
+        const programPresonality = programData.personality;
+        const dateInstance = new Date();
+        const today = dateInstance.getFullYear() + '/' + (dateInstance.getMonth() + 1) + '/' + dateInstance.getDate();
+        const beginTime =
+            programData.beginTime.substring(0, 2) +
+            ":" +
+            programData.beginTime.substring(2) + ":00";
+        const endTime = 
+            programData.endTime.substring(0, 2) +
+            ":" +
+            programData.endTime.substring(2) + ":00";
 
-    //チャットルームのURLを指定する
-    const WEBHOOK_URL = ''; 
-    const message = {'text' : notifyText}
-    const options = {
-        'method': 'POST',
-        'headers' : {
-            'Content-Type': 'application/json; charset=UTF-8'
-        },
-        'payload':JSON.stringify(message)
-    };
-
-    UrlFetchApp.fetch(WEBHOOK_URL, options);
-
-};
+        const calendar = CalendarApp.getDefaultCalendar();
+        const title = first + realTime + repeat + programData.title;
+        const beginDateTime = new Date(today + ' ' + beginTime);
+        const endDateTime = new Date(today + ' ' + endTime);
+        const option = {
+            description: programPresonality
+        }
+        //console.log(title + ':' + beginDateTime + ':' + endDateTime + ':' + option);
+        calendar.createEvent(title, beginDateTime, endDateTime, option);
+    })
+}
 
 //スプレッドシートの取得
 const getSpreadSheet = (sheetIndex = 0) => {
@@ -89,7 +99,8 @@ const getReadFileName = () => {
     const dateObj = new Date();
     const nowHours = dateObj.getHours();
 
-    if(isTodayYet(nowHours)){
+    //午前0~6時までは前日の番組表を見に行く
+    if(0 <= nowHours && nowHours < 6){
         dateObj.setDate(dateObj.getDate()-1);
     }
 
